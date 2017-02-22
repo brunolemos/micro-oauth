@@ -10,14 +10,21 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mxstbr/micro-github.git"
+    "url": "git+https://github.com/brunolemos/micro-oauth.git"
   },
-  "author": "Max Stoiber <contact@mxstbr.com> (http://mxstbr.com/)",
+  "author": "Bruno Lemos <bruno@brunolemos.org> (https://twitter.com/brunolemos)",
+  "contributors": [
+    {
+      "name": "Max Stoiber",
+      "email": "contact@mxstbr.com",
+      "url": "http://mxstbr.com/"
+    }
+  ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/mxstbr/micro-github/issues"
+    "url": "https://github.com/brunolemos/micro-oauth/issues"
   },
-  "homepage": "https://github.com/mxstbr/micro-github.git#readme",
+  "homepage": "https://github.com/brunolemos/micro-oauth.git#readme",
   "dependencies": {
     "axios": "^0.15.3",
     "dotenv": "^4.0.0",

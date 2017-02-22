@@ -3,7 +3,6 @@ const url = require('url')
 const querystring = require('querystring')
 const axios = require('axios')
 const { send } = require('micro')
-const githubUrl = process.env.GH_HOST || 'github.com'
 
 const createRedirectHTML = (data) => {
   const url = `${process.env.REDIRECT_URL}?${querystring.stringify(data)}`
@@ -18,34 +17,40 @@ const createRedirectHTML = (data) => {
 
 module.exports = async (req, res) => {
   res.setHeader('Content-Type', 'text/html')
-  const { query: { code } } = url.parse(req.url, true)
+  const { query } = url.parse(req.url, true)
+  const { code } = query
+
   if (!code) {
     send(res, 401, createRedirectHTML({ error: 'Provide code query param' }))
   } else {
     try {
-      const { status, data } = await axios({
-        method: 'POST',
-        url: `https://${githubUrl}/login/oauth/access_token`,
-        responseType: 'json',
-        data: {
-          client_id: process.env.GH_CLIENT_ID,
-          client_secret: process.env.GH_CLIENT_SECRET,
-          code
-        }
-      })
+      const { status, data } = await axios.post(
+        process.env.AUTHORIZE_URL,
+        querystring.stringify(Object.assign({}, {
+        client_id: process.env.CLIENT_ID,
+        client_secret: process.env.CLIENT_SECRET,
+        code,
+        grant_type: 'authorization_code',
+        redirect_uri: `http://${req.headers.host}`,
+      }, query)))
 
-      if (status === 200) {
-        const qs = querystring.parse(data)
-        if (qs.error) {
-          send(res, 401, createRedirectHTML({ error: qs.error_description }))
+      if (status === 200 && data) {
+        const result = typeof data === 'object' ? data : querystring.parse(data)
+
+        if (result.error) {
+          send(res, 401, createRedirectHTML({ error: result.error_description }))
         } else {
-          send(res, 200, createRedirectHTML({ access_token: qs.access_token }))
+          send(res, 200, createRedirectHTML({ access_token: result.access_token }))
         }
       } else {
-        send(res, 500, createRedirectHTML({ error: 'GitHub server error.' }))
+        send(res, 500, createRedirectHTML({ error: `${process.env.PROVIDER} server error.` }))
       }
     } catch (err) {
-      send(res, 500, createRedirectHTML({ error: 'Please provide GH_CLIENT_ID and GH_CLIENT_SECRET as environment variables. (or GitHub might be down)' }))
+      const statusCode = (((err || {}).response || {}).data || {}).code || 500
+      const message = (((err || {}).response || {}).data || {}).error_message
+        || `Please provide CLIENT_ID and CLIENT_SECRET as environment variables. (or ${process.env.PROVIDER} might be down)`
+
+      send(res, statusCode, createRedirectHTML({ error: message }))
     }
   }
 }
