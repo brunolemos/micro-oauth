@@ -1,11 +1,11 @@
 require('dotenv').config()
 const url = require('url')
-const querystring = require('querystring')
+const qs = require('qs')
 const axios = require('axios')
 const { send } = require('micro')
 
 const createRedirectHTML = (data) => {
-  const url = `${process.env.REDIRECT_URL}?${querystring.stringify(data)}`
+  const url = `${process.env.REDIRECT_URL}?${qs.stringify(data)}`
   return `
 <!DOCTYPE html>
 <meta charset=utf-8>
@@ -26,7 +26,7 @@ module.exports = async (req, res) => {
     try {
       const { status, data } = await axios.post(
         process.env.AUTHORIZE_URL,
-        querystring.stringify(Object.assign({}, {
+        qs.stringify(Object.assign({}, {
         client_id: process.env.CLIENT_ID,
         client_secret: process.env.CLIENT_SECRET,
         code,
@@ -35,12 +35,13 @@ module.exports = async (req, res) => {
       }, query)))
 
       if (status === 200 && data) {
-        const result = typeof data === 'object' ? data : querystring.parse(data)
+        const result = typeof data === 'object' ? data : qs.parse(data)
 
         if (result.error) {
           send(res, 401, createRedirectHTML({ error: result.error_description }))
         } else {
-          send(res, 200, createRedirectHTML({ access_token: result.access_token }))
+          result.access_token = result.access_token || undefined
+          send(res, 200, createRedirectHTML(result))
         }
       } else {
         send(res, 500, createRedirectHTML({ error: `${process.env.PROVIDER} server error.` }))

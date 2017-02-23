@@ -28,7 +28,8 @@
   "dependencies": {
     "axios": "^0.15.3",
     "dotenv": "^4.0.0",
-    "micro": "^6.2.1"
+    "micro": "^6.2.1",
+    "qs": "^6.3.1"
   },
   "devDependencies": {
     "nodemon": "^1.11.0",
