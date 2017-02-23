@@ -24,6 +24,8 @@ module.exports = async (req, res) => {
     send(res, 401, createRedirectHTML({ error: 'Provide code query param' }))
   } else {
     try {
+      const https = req.headers.host.indexOf('localhost') < 0
+
       const { status, data } = await axios.post(
         process.env.AUTHORIZE_URL,
         qs.stringify(Object.assign({}, {
@@ -31,7 +33,7 @@ module.exports = async (req, res) => {
         client_secret: process.env.CLIENT_SECRET,
         code,
         grant_type: 'authorization_code',
-        redirect_uri: `http://${req.headers.host}`,
+        redirect_uri: `${https ? 'https' : 'http'}://${req.headers.host}`,
       }, query)))
 
       if (status === 200 && data) {
