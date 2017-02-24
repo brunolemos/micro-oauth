@@ -3,7 +3,7 @@
 A tiny microservice that makes it easier to add OAuth authentication to your application.
 This supports any provider that follows the OAuth2 protocol, like GitHub and Instagram.
 
-## Usage
+## Usage without cloning this repo
 
 Running your own `micro-oauth` is a single [`now`](https://now.sh) command away:
 
@@ -12,23 +12,24 @@ Running your own `micro-oauth` is a single [`now`](https://now.sh) command away:
 now brunolemos/micro-oauth -e PROVIDER=GitHub -e AUTHORIZE_URL=https://github.com/login/oauth/access_token -e CLIENT_ID=abc123 -e CLIENT_SECRET=abc123 -e REDIRECT_URL=myapp://oauth/github
 ```
 
-To log people in they just have to click on a link to `https://github.com/login/oauth/authorize?client_id=abc123`. (where `client_id` is your GitHub app client id) This will redirect them to the GitHub sign in page for your app, which looks like this:
+## Usage cloning this repo
 
-![Authorize my app to access your data on GitHub](https://cloud.githubusercontent.com/assets/7525670/22627265/fc50c680-ebbf-11e6-9126-dcdef37d3c3d.png)
+```sh
+# Go to cloned repo directory
+cd ./micro-auth
 
-> You can change the scope of the data you can access with the `scope` query param, see the [GitHub docs](https://developer.github.com/v3/oauth/#scopes)!
-
-When authentication is successful, the user will be redirected to the `REDIRECT_URL` with the access token from GitHub for you to use! 🎉
-
-For Instagram, for exemple, the URL is `https://www.instagram.com/oauth/authorize/?response_type=code&client_id=abc123&redirect_uri=http://localhost:3000`.
+# Deploy (you'll need a .env file)
+now -E
+```
 
 
 ### Environment variables
 
+Move `.env.example` to `.env` and fill in your Provider API details and redirect url.
 You'll need to provide these environment variables when running `micro-oauth`:
 
 ```sh
-# The provider you are authenticating on (e.g. GitHub, Instagram, ...)
+# The provider you are authenticating on
 PROVIDER=GitHub
 # ...or PROVIDER=Instagram, ...
 
@@ -47,7 +48,21 @@ REDIRECT_URL=myapp://oauth/github
 # ...or REDIRECT_URL=http://localhost:1234/my/oauth/callback/xxx, ...
 ```
 
-> Create an application on on provider website (e.g. [GitHub](https://github.com/settings/applications/new), [Instagram](https://www.instagram.com/developer/clients/register/), ...) to get your client id and secret if you haven't done that already.
+> Create an application on the provider website (e.g. [GitHub](https://github.com/settings/applications/new), [Instagram](https://www.instagram.com/developer/clients/register/), ...) to get your `CLIENT_ID` and `CLIENT_SECRET` if you haven't done that already.
+
+### More details
+
+To request people authorization, you need to send them to the provider website like this:
+
+- For GitHub: `https://github.com/login/oauth/authorize?client_id=abc123`
+- For Instagram: `https://www.instagram.com/oauth/authorize/?response_type=code&client_id=abc123&redirect_uri=http://localhost:3000`.
+
+> Replace the `client_id` and `redirect_uri` variables accordingly
+
+> You can pass a `?scope=` query param to set the permissions you request from the user, check the provider docs ([GitHub](https://developer.github.com/v3/oauth/#scopes), [Instagram](https://www.instagram.com/developer/authorization/), ...)
+
+When authentication is successful, the user will be redirected to the `REDIRECT_URL` with the access token from GitHub for you to use! 🎉
+
 
 When authentication was successful, the user will be redirected to the `REDIRECT_URL` with the `access_token` query param set to the provider access token. You can then use that token to interact with the Provider API! (see: [GitHub API](https://developer.github.com/v3/), [Instagram API](https://www.instagram.com/developer/endpoints/), ...)
 
@@ -55,13 +70,13 @@ When authentication was successful, the user will be redirected to the `REDIRECT
 
 ### Finish setup
 
-To make this work you have to set the authorization callback URL of [your application on GitHub](https://github.com/settings/developers) to whatever URL `now` gave you:
+To make this work you have to set the authorization callback URL on the provider website to whatever URL `now` gave you:
 
 ![Authorization callback URL: 'your-url.now.sh'](https://cloud.githubusercontent.com/assets/7525670/22621592/95546272-eb27-11e6-80f3-6a2cd556d319.png)
 
 ### Error handling
 
-In case an error happens (either by the service or on GitHub) the user will be redirected to the `REDIRECT_URL` with the `error` query param set to a relevant error message.
+In case an error happens on the server, the user will be redirected to the `REDIRECT_URL` with the `error` query param set to a relevant error message.
 
 ## Development
 
@@ -69,17 +84,17 @@ In case an error happens (either by the service or on GitHub) the user will be r
 git clone git@github.com:brunolemos/micro-oauth.git
 ```
 
-Move `.env.example` to `.env` and fill in your GitHub API details and redirect url
+Move `.env.example` to `.env` and fill in your Provider API details and redirect url
 
 ```sh
 npm run dev
 ```
 
-The server will then be listening at `localhost:3000`, so set the authorization callback URL of your dev application on the provider website to that.
+The server will then be listening at `http://localhost:3000`, so set the authorization callback URL of your dev application on the provider website to that.
 
 ## Updating
 
-The `master` branch of this repository is what you will be deploying. To update to a new version with potential bugfixes, all you have to do is run the `now` command again and then set the authorization callback URL on GitHub to the new URL that `now` gave you! 👌
+The `master` branch of this repository is what you will be deploying. To update to a new version with potential bugfixes, all you have to do is run the `now` command again and then set the authorization callback URL on GitHub to the **new URL** that `now` gave you! 👌
 
 ## License
 
