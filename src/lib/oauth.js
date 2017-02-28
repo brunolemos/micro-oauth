@@ -28,7 +28,7 @@ const redirectUsingHTMLAndPostMessage = (res, statusCode, url) => {
       }
 
       var query = getQueryParameters(${JSON.stringify(url)});
-      var hasValidCallbackURL = ${url.match(/[^?]+[?]/) ? 'true' : 'false'};
+      var hasValidCallbackURL = ${url.match(/[^?]+[?]/) ? 'true' : 'false'} && query.callback_url;
 
       if (typeof (window.opener || {}).postMessage === 'function') {
         var origin = decodeURIComponent(query.origin || '');
@@ -81,6 +81,8 @@ exports.callback = async (
     callback(data.error || null, data.error ? null : data);
 
     const query = Object.assign({}, req.query, data);
+    query.callback_url = query.callback_url || CALLBACK_URL;
+
     const url = mergeQueryWithURL(CALLBACK_URL, query);
     redirectUsingHTMLAndPostMessage(res, statusCode, url);
   };
