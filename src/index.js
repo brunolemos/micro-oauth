@@ -14,7 +14,6 @@ const getCallbackURLWithQuery = (req, query = req.query) =>
   mergeQueryWithURL(
     getBaseCallbackURL(req),
     omit(query, [
-      'callback_url',
       'client_id',
       'code',
       'grant_type',
@@ -37,7 +36,6 @@ module.exports = router(
           client_id: process.env.CLIENT_ID,
           redirect_uri: getCallbackURLWithQuery(req),
           response_type: 'code',
-          scope: 'basic',
         }
       )
     );

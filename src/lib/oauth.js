@@ -4,15 +4,46 @@ const { send } = require('micro')
 
 const { mergeQueryWithURL } = require('../helpers');
 
-// this is to make url scheme works, like when redirecting to minder://
 const redirectUsingHTML = (res, statusCode, url) => {
   res.setHeader('content-type', 'text/html')
   send(res, statusCode || 302, (
     `<!DOCTYPE html>
     <meta charset="utf-8" />
-    <title>Redirecting...</title>
     <meta http-equiv="refresh" content=${JSON.stringify(`0;URL=${url}`)} />
+    <title>Redirecting...</title>
     <script>window.location=${JSON.stringify(url)}</script>`
+  ));
+}
+
+const redirectUsingHTMLAndPostMessage = (res, statusCode, url) => {
+  res.setHeader('content-type', 'text/html')
+  send(res, statusCode || 302, (
+    `<!DOCTYPE html>
+    <meta charset="utf-8" />
+    <title>Redirecting...</title>
+    <script>
+      function getQueryParameters(str) {
+        var _str = str || document.location.search || '';
+        return (_str[0] === '?' ? _str.slice(1) : _str.replace(${/[^\?]+[\?]?/}, '')).split("&").map(function(n){return n = n.split("="),this[n[0]] = n[1],this}.bind({}))[0];
+      }
+
+      var query = getQueryParameters(${JSON.stringify(url)});
+      var hasValidCallbackURL = ${url.match(/[^?]+[?]/) ? 'true' : 'false'};
+
+      if (typeof (window.opener || {}).postMessage === 'function') {
+        var origin = decodeURIComponent(query.origin || '');
+        window.opener.postMessage(query, origin);
+
+        if (!hasValidCallbackURL && window.close) window.close();
+      }
+
+      if (hasValidCallbackURL)
+        window.location=${JSON.stringify(url)}
+      else if (window.opener)
+        window.close()
+      else
+        alert('No callback url was specified.')
+    </script>`
   ));
 }
 
@@ -27,7 +58,7 @@ exports.getCurrentHostURL = req =>
     : `https://${req.headers.host}`;
 
 exports.authorize = (req, res, { AUTHORIZE_URL }, _query = req.query) => {
-  redirectUsingHTML(res, 301, mergeQueryWithURL(AUTHORIZE_URL, _query));
+  redirectUsingHTML(res, 302, mergeQueryWithURL(AUTHORIZE_URL, _query));
 };
 
 exports.callback = async (
@@ -49,8 +80,9 @@ exports.callback = async (
   const redirectWithData = (statusCode, data) => {
     callback(data.error || null, data.error ? null : data);
 
-    const url = mergeQueryWithURL(CALLBACK_URL, req.query, data);
-    redirectUsingHTML(res, statusCode, url);
+    const query = Object.assign({}, req.query, data);
+    const url = mergeQueryWithURL(CALLBACK_URL, query);
+    redirectUsingHTMLAndPostMessage(res, statusCode, url);
   };
 
   if (!code) {
@@ -87,6 +119,7 @@ exports.callback = async (
       redirectWithData(500, { error: `${PROVIDER} server error.` });
     }
   } catch (err) {
+    console.error('err', err)
     const statusCode = (((err || {}).response || {}).data || {}).code || 500;
     const message = (((err || {}).response || {}).data || {}).error_message ||
       `Please provide CALLBACK_URL, CLIENT_ID, CLIENT_SECRET and GET_TOKEN_URL variables. (or ${PROVIDER} might be down)`;
