@@ -2,7 +2,7 @@
   "name": "micro-oauth",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
     "start": "micro",
     "dev": "nodemon --exec \"npm start\" -e \"js\"",
@@ -28,7 +28,9 @@
   "dependencies": {
     "axios": "^0.15.3",
     "dotenv": "^4.0.0",
+    "lodash": "^4.17.4",
     "micro": "^6.2.1",
+    "microrouter": "^1.0.0",
     "qs": "^6.3.1"
   },
   "devDependencies": {
