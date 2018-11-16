@@ -3,67 +3,55 @@
 A tiny microservice that makes it easier to add OAuth authentication to your application.
 This supports any provider that follows the OAuth2 protocol, like GitHub and Instagram.
 
-## Usage #1 (without cloning this repo)
+## Usage
 
-Running your own `micro-oauth` is a single [`now`](https://now.sh) command away:
-
-```sh
-# Deploy this repository using now.sh
-now brunolemos/micro-oauth -e PROVIDER=GitHub -e AUTHORIZE_URL=https://github.com/login/oauth/authorize -e CALLBACK_URL=myapp://oauth/github -e CLIENT_ID=abc123 -e CLIENT_SECRET=abc123 -e GET_TOKEN_URL=https://github.com/login/oauth/access_token
-```
-
-## Usage #2 (cloning this repo)
+### Clone this repo
 
 Clone the repo:
+
 ```sh
 git clone git@github.com:brunolemos/micro-oauth.git
 ```
 
-Move `.env.example` to `.env` and fill in your Provider API details (see [Environment variables](#environment-variables) section below)
+### Enviroment variables
 
-```sh
-# Go to cloned repo directory
-cd ./micro-auth
+Edit the `env` field inside `now.json`. Example:
 
-# Option #1: Deploy
-now -E
+```js
+{
+  // The provider you are authenticating on
+  "PROVIDER": "GitHub",
+  // or Instagram, ...
 
-# Option #2: Run locally
-npm run dev
-```
+  // The provider authorize url (to request permissions from the user)
+  "AUTHORIZE_URL": "https://github.com/login/oauth/authorize",
+  // or https://www.instagram.com/oauth/authorize, ...
 
-The server will then be listening at `http://localhost:3000`, so set the authorization callback URL of your dev application on the provider website to `http://localhost:3000/callback`.
+  // The URL to redirect the user to once the authentication was successful
+  // PS: You can also pass this as a ?callback_url parameter on AUTHORIZE_URL env variable above
+  "CALLBACK_URL": "myapp://oauth/github",
+  // or http://localhost:1234/my/oauth/callback/xxx, ...
 
-### Environment variables
+  // Your application client id
+  "CLIENT_ID": "abc123",
 
-Move `.env.example` to `.env` and fill in your Provider API details:
+  // Your application client secret
+  "CLIENT_SECRET": "abc123",
 
-```sh
-# The provider you are authenticating on
-PROVIDER=GitHub
-# ...or PROVIDER=Instagram, ...
-
-# The provider authorize url (to request permissions from the user)
- AUTHORIZE_URL=https://github.com/login/oauth/authorize
-# ...or AUTHORIZE_URL=https://www.instagram.com/oauth/authorize, ...
-
-# The URL to redirect the user to once the authentication was successful
-# PS: You can also pass this as a ?callback_url parameter on AUTHORIZE_URL env variable
-CALLBACK_URL=myapp://oauth/github above
-# ...or CALLBACK_URL=http://localhost:1234/my/oauth/callback/xxx, ...
-
-# Your application client id
-CLIENT_ID=abc123
-
-# Your application client secret
-CLIENT_SECRET=abc123
-
-# Provider's url to get the access token
-GET_TOKEN_URL=https://github.com/login/oauth/access_token
-# ...or GET_TOKEN_URL=https://api.instagram.com/oauth/access_token, ...
+  // Provider's url to get the access token
+  "GET_TOKEN_URL": "https://github.com/login/oauth/access_token"
+  // or https://api.instagram.com/oauth/access_token, ...
+}
 ```
 
 > Create an application on the provider website (e.g. [GitHub](https://github.com/settings/applications/new), [Instagram](https://www.instagram.com/developer/clients/register/), ...) to get your `CLIENT_ID` and `CLIENT_SECRET` if you haven't done that already.
+
+### Deploy
+
+```sh
+now
+```
+
 
 ### More details
 
@@ -92,11 +80,7 @@ or localhost for testing:
 
 In case an error happens on the server, the user will be redirected to the `CALLBACK_URL` with the `error` query param set to a relevant error message.
 
-## Updating
-
-The `master` branch of this repository is what you will be deploying. To update to a new version with potential bugfixes, all you have to do is run the `now` command again and then set the authorization callback URL on GitHub to the **new URL** that `now` gave you! 👌
-
 ## License
 
-Copyright (c) 2017 [Bruno Lemos](https://twitter.com/brunolemos) & [Maximilian Stoiber](https://twitter.com/mxstbr), licensed under the MIT license.
+Copyright (c) 2018 [Bruno Lemos](https://twitter.com/brunolemos) & [Maximilian Stoiber](https://twitter.com/mxstbr), licensed under the MIT license.
 See [LICENSE.md](LICENSE.md) for more information.

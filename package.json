@@ -1,12 +1,10 @@
 {
   "name": "micro-oauth",
-  "version": "2.0.1",
+  "version": "3.0.0",
   "description": "",
   "main": "src/index.js",
   "scripts": {
-    "start": "micro",
-    "dev": "nodemon --exec \"npm start\" -e \"js\"",
-    "test": "standard"
+    "start": "nodemon --exec \"micro\" -e \"js\""
   },
   "repository": {
     "type": "git",
@@ -15,26 +13,30 @@
   "author": "Bruno Lemos <bruno@brunolemos.org> (https://twitter.com/brunolemos)",
   "contributors": [
     {
+      "name": "Bruno Lemos",
+      "email": "bruno@brunolemos.org",
+      "url": "https://twitter.com/brunolemos"
+    },
+    {
       "name": "Max Stoiber",
       "email": "contact@mxstbr.com",
       "url": "http://mxstbr.com/"
     }
   ],
-  "license": "MIT",
   "bugs": {
     "url": "https://github.com/brunolemos/micro-oauth/issues"
   },
   "homepage": "https://github.com/brunolemos/micro-oauth.git#readme",
   "dependencies": {
     "axios": "^0.15.3",
-    "dotenv": "^4.0.0",
     "lodash": "^4.17.4",
-    "micro": "^6.2.1",
-    "microrouter": "^1.0.0",
-    "qs": "^6.3.1"
+    "qs": "^6.3.1",
+    "url": "^0.11.0"
   },
   "devDependencies": {
-    "nodemon": "^1.11.0",
-    "standard": "^8.6.0"
-  }
+    "micro": "^9.3.3",
+    "microrouter": "^3.1.3",
+    "nodemon": "^1.11.0"
+  },
+  "license": "MIT"
 }

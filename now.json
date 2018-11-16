@@ -1,0 +1,21 @@
+{
+  "name": "micro-oauth",
+  "version": 2,
+  "builds": [
+    { "src": "src/auth.js", "use": "@now/node" },
+    { "src": "src/callback.js", "use": "@now/node" }
+  ],
+  "routes": [
+    { "src": "/callback", "dest": "src/callback.js" },
+    { "src": "/", "dest": "src/auth.js" }
+  ],
+  "regions": ["gru1"],
+  "env": {
+    "PROVIDER": "GitHub",
+    "AUTHORIZE_URL": "https://github.com/login/oauth/authorize",
+    "CALLBACK_URL": "",
+    "CLIENT_ID": "",
+    "CLIENT_SECRET": "",
+    "GET_TOKEN_URL": "https://github.com/login/oauth/access_token"
+  }
+}

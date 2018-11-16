@@ -1,23 +1,22 @@
-const qs = require('qs');
-const axios = require('axios');
-const { send } = require('micro')
+const qs = require('qs')
+const axios = require('axios')
 
-const { mergeQueryWithURL } = require('../helpers');
+const { mergeQueryWithURL } = require('../helpers')
 
 const redirectUsingHTML = (res, statusCode, url) => {
-  res.setHeader('content-type', 'text/html')
-  send(res, statusCode || 302, (
+  res.writeHead(statusCode || 302, { 'content-type': 'text/html' })
+  res.end(
     `<!DOCTYPE html>
     <meta charset="utf-8" />
     <meta http-equiv="refresh" content=${JSON.stringify(`0;URL=${url}`)} />
     <title>Redirecting...</title>
     <script>window.location=${JSON.stringify(url)}</script>`
-  ));
+  )
 }
 
 const redirectUsingHTMLAndPostMessage = (res, statusCode, url) => {
-  res.setHeader('content-type', 'text/html')
-  send(res, statusCode || 302, (
+  res.writeHead(statusCode || 302, { 'content-type': 'text/html' })
+  res.end(
     `<!DOCTYPE html>
     <meta charset="utf-8" />
     <title>Redirecting...</title>
@@ -28,7 +27,9 @@ const redirectUsingHTMLAndPostMessage = (res, statusCode, url) => {
       }
 
       var query = getQueryParameters(${JSON.stringify(url)});
-      var hasValidCallbackURL = ${url.match(/[^?]+[?]/) ? 'true' : 'false'} && query.callback_url;
+      var hasValidCallbackURL = ${
+        url.match(/[^?]+[?]/) ? 'true' : 'false'
+      } && query.callback_url;
 
       if (typeof (window.opener || {}).postMessage === 'function') {
         var origin = decodeURIComponent(query.origin || '');
@@ -44,22 +45,22 @@ const redirectUsingHTMLAndPostMessage = (res, statusCode, url) => {
       else
         alert('No callback url was specified.')
     </script>`
-  ));
+  )
 }
 
 const isLocalhost = host =>
-  host.indexOf('localhost') >= 0
-    || host.indexOf('0.0.0.0') >= 0
-    || host.indexOf('127.0.0.1') >= 0
+  host.indexOf('localhost') >= 0 ||
+  host.indexOf('0.0.0.0') >= 0 ||
+  host.indexOf('127.0.0.1') >= 0
 
 exports.getCurrentHostURL = req =>
   isLocalhost(req.headers.host)
     ? `http://${req.headers.host.replace(/(0.0.0.0)|(127.0.0.1)/, 'localhost')}`
-    : `https://${req.headers.host}`;
+    : `https://${req.headers.host}`
 
 exports.authorize = (req, res, { AUTHORIZE_URL }, _query = req.query) => {
-  redirectUsingHTML(res, 302, mergeQueryWithURL(AUTHORIZE_URL, _query));
-};
+  redirectUsingHTML(res, 302, mergeQueryWithURL(AUTHORIZE_URL, _query))
+}
 
 exports.callback = async (
   req,
@@ -74,22 +75,22 @@ exports.callback = async (
   _query = req.query,
   _callback = function() {}
 ) => {
-  const { code } = req.query;
+  const { code } = req.query
 
-  const callback = _callback || function() {};
+  const callback = _callback || function() {}
   const redirectWithData = (statusCode, data) => {
-    callback(data.error || null, data.error ? null : data);
+    callback(data.error || null, data.error ? null : data)
 
-    const query = Object.assign({}, req.query, data);
-    query.callback_url = query.callback_url || CALLBACK_URL;
+    const query = Object.assign({}, req.query, data)
+    query.callback_url = query.callback_url || CALLBACK_URL
 
-    const url = mergeQueryWithURL(CALLBACK_URL, query);
-    redirectUsingHTMLAndPostMessage(res, statusCode, url);
-  };
+    const url = mergeQueryWithURL(CALLBACK_URL, query)
+    redirectUsingHTMLAndPostMessage(res, statusCode, url)
+  }
 
   if (!code) {
-    redirectWithData(401, { error: 'Provide code query param' });
-    return;
+    redirectWithData(401, { error: 'Provide code query param' })
+    return
   }
 
   try {
@@ -106,26 +107,27 @@ exports.callback = async (
           _query
         )
       )
-    );
+    )
 
     if (status === 200 && data) {
-      const result = typeof data === 'object' ? data : qs.parse(data);
+      const result = typeof data === 'object' ? data : qs.parse(data)
 
       if (result.error) {
-        redirectWithData(401, { error: result.error_description });
+        redirectWithData(401, { error: result.error_description })
       } else {
-        result.access_token = result.access_token || undefined;
-        redirectWithData(200, result);
+        result.access_token = result.access_token || undefined
+        redirectWithData(200, result)
       }
     } else {
-      redirectWithData(500, { error: `${PROVIDER} server error.` });
+      redirectWithData(500, { error: `${PROVIDER} server error.` })
     }
   } catch (err) {
     console.error('err', err)
-    const statusCode = (((err || {}).response || {}).data || {}).code || 500;
-    const message = (((err || {}).response || {}).data || {}).error_message ||
-      `Please provide CALLBACK_URL, CLIENT_ID, CLIENT_SECRET and GET_TOKEN_URL variables. (or ${PROVIDER} might be down)`;
+    const statusCode = (((err || {}).response || {}).data || {}).code || 500
+    const message =
+      (((err || {}).response || {}).data || {}).error_message ||
+      `Please provide CALLBACK_URL, CLIENT_ID, CLIENT_SECRET and GET_TOKEN_URL variables. (or ${PROVIDER} might be down)`
 
-    redirectWithData(statusCode, { error: message });
+    redirectWithData(statusCode, { error: message })
   }
-};
+}
