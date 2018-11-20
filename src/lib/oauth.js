@@ -32,7 +32,7 @@ const redirectUsingHTMLAndPostMessage = (res, statusCode, url) => {
       } && query.callback_url;
 
       if (typeof (window.opener || {}).postMessage === 'function') {
-        var origin = decodeURIComponent(query.origin || '');
+        var origin = decodeURIComponent(query.origin || '*');
         window.opener.postMessage(query, origin);
 
         if (!hasValidCallbackURL && window.close) window.close();
