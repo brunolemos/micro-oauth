@@ -5,7 +5,7 @@ const oauth = require('../lib/oauth')
 
 exports.mergeQueryWithURL = (url, ...queryObjs) => {
   const [, urlWithoutQuery, queryStringFromURL] =
-    (url || '').match(/([^?]+[?]?)(.*)/) || []
+    (url || '').match(/([^?]+)[?]?(.*)/) || []
   const queryFromURL = qs.parse(queryStringFromURL)
 
   const mergedQuery = Object.assign({}, ...queryObjs, queryFromURL)
